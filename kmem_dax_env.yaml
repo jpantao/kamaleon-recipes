@@ -1,0 +1,91 @@
+#==============================================================================
+# vim: softtabstop=2 shiftwidth=2 expandtab fenc=utf-8 cc=81 tw=80
+#==============================================================================
+#
+# DESCRIPTION: Recipe to build a custom Grid'5000 environment on top of an
+# existing pre-built one (such as one supported by the technical team).
+# The recipe takes a environment name, and first extracts its image tarball
+# before letting define some customizations in the setup section. It then
+# export the new environment. This recipe does not rebuild the Grid'5000
+# environment from scratch: neither the distribution installer nor Puppet is
+# involved. The recipe must be built on a Grid'5000 node.
+#
+#==============================================================================
+# This recipe extends another. To look at the step involed, run:
+#   kameleon dryrun kmem_dax_env.yaml
+# To see the variables that you can override, use the following command:
+#   kameleon info kmem_dax_env.yaml
+---
+extend: grid5000/from_grid5000_environment/base.yaml
+
+global:
+  ### Grid'5000 environment information
+  ## (Uncomment and change any line if needed)
+
+  ## Frontend to run kaenv3 on
+  #grid5000_frontend: "frontend"
+
+  ## Site used in the build
+  #grid5000_site: "grenoble"
+
+  ## Environment to build from
+  #grid5000_environment_import_name: "debian10-x64-min"
+  #grid5000_environment_import_user: "deploy"
+  #grid5000_environment_import_version: ""
+
+  ## New environment description
+  #grid5000_environment_export_name: "$${kameleon_recipe_name}"
+  #grid5000_environment_export_format: "tar.zst"
+  #grid5000_environment_export_description: "Customized $${grid5000_environment_import_name}"
+
+  ## Set where to store the environment and the assiated kadeploy URL base
+  #grid5000_environment_export_dir: "$HOME/public/"
+  #grid5000_environment_export_baseurl: "local://$HOME/public/"
+
+  ## Optionaly, the environment postinstall script can be changed, e.g. to
+  ## enable NFS homes, LDAP accounts, if not enabled in the imported env.
+  #grid5000_environment_export_postinstall_script: "g5k-postinstall --net debian --fstab nfs --restrict-user current"
+
+  ## Optionaly, an additional postinstall can be given, e.g. to do some custom
+  ## operations. Use the following variables to set the archive name and script.
+  #grid5000_environment_export_additional_postinstall_archive: "$${kameleon_recipe_name}-additional-postinstall.tar.gz"
+  #grid5000_environment_export_additional_postinstall_script: "additional_postinstall.sh"
+  ## The recipe will have to prepare the additional postinstall content in a
+  ## directory to create in the local context and name "additional_postinstall"
+  ## by default (next line to change it). The archive is created by the export.
+  #grid5000_environment_export_additional_postinstall_dir: "additional_postinstall"
+
+  ### Target machine/CPU architecture
+  ## If building an environment for another architecture than x86_64, uncomment
+  ## and adapt the next lines.
+  ## The following works for ARM64 machines, just uncomment for such machines.
+  #arch: aarch64
+  #qemu_arch: aarch64
+  #qemu_uefi: true
+
+  ### You can add below any other global variable definition
+  ## See the variables which can be overloaded, by running:
+  ##   kameleon info kmem_dax_env.yaml
+  ## Or define any new variable you would need. e.g.:
+  #my_variable: my_value
+
+bootstrap:
+  ### The bootstrap section takes in charge the import of the Grid'5000
+  ## environment to customize. No modification should be needed here.
+  - "@base"
+
+setup:
+  ### The setup section is where to place your customization. Add all steps
+  ## required by your customization.
+  ## The following is given as example only, replace with your steps.
+  - a_customization_step:
+    - microstep1:
+      - exec_in: echo "Hello world!"
+    - microstep1:
+      # This breakpoint will stop the build for inspecting the environment
+      - breakpoint
+
+export:
+  ### The export section takes in charge the export of your customized Grid'5000
+  ## environment. No modification should be needed here.
+  - "@base"
