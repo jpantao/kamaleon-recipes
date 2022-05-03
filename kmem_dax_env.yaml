@@ -75,11 +75,6 @@ bootstrap:
   - "@base"
 
 setup:
-  ### The setup section is where to place your customization. Add all steps
-  ## required by your customization.
-  ## The following is given as example only, replace with your steps.
-  - "@base"
-
   # Prepare user access
   - prepare_user_access:
     - update-system:
@@ -102,7 +97,6 @@ setup:
       - local2in:
         - /etc/nslcd.conf
         - /etc/nslcd.conf
-
   # Install tools and dependencies
   - install_tools:
     - pmem_tools:
@@ -114,7 +108,6 @@ setup:
       - exec_in: apt-get install -y pkg-config gcc libnuma-dev make psmisc dh-autoreconf
     - ycsb:
       - exec_in: apt-get install -y default-jre default-jdk
-
   # Setup PMEM environment
   - prepare_additional_postinstall:
     - create_pmem_setup_script:
