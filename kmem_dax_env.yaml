@@ -84,10 +84,10 @@ setup:
     - install_ldap_service:
       - exec_in: apt-get install -y nslcd
     - setup_ldap:
-      - exec_in: mkdir -p /etc/ldap/certificates/
+      - exec_in: mkdir -p /etc/ldap/certs/
       - local2in:
-        - /etc/ldap/certificates/ca2019.grid5000.fr.cert
-        - /etc/ldap/certificates/ca2019.grid5000.fr.cert
+        - /etc/ldap/certs/ca2019.grid5000.fr.cert
+        - /etc/ldap/certs/ca2019.grid5000.fr.cert
       - local2in:
         - /etc/ldap/ldap.conf 
         - /etc/ldap/ldap.conf 
