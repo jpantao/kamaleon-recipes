@@ -29,7 +29,7 @@ global:
   grid5000_site: "grenoble"
 
   ## Environment to build from
-  grid5000_environment_import_name: "debiantesting-x64-min"
+  grid5000_environment_import_name: "debian11-x64-nfs"
   #grid5000_environment_import_user: "deploy"
   #grid5000_environment_import_version: ""
 
@@ -75,74 +75,62 @@ bootstrap:
   - "@base"
 
 setup:
-  # Prepare user access
-  - prepare_user_access:
-    - update-system:
-      - exec_in: apt-get -y update && apt-get -y upgrade
-    - install_nfs_service:
-      - exec_in: apt-get install -y nfs-common autofs
-    - install_ldap_service:
-      - exec_in: apt-get install -y nslcd
-    - setup_ldap:
-      - exec_in: mkdir -p /etc/ldap/certificates/
-      - local2in:
-        - /etc/ldap/certificates/ca2019.grid5000.fr.cert
-        - /etc/ldap/certificates/ca2019.grid5000.fr.cert
-      - local2in:
-        - /etc/ldap/ldap.conf 
-        - /etc/ldap/ldap.conf 
-      - local2in:
-        - /etc/nsswitch.conf
-        - /etc/nsswitch.conf
-      - local2in:
-        - /etc/nslcd.conf
-        - /etc/nslcd.conf
+  - configure_system:
+    - update: 
+      - exec_in: apt-get -y update && apt-get -y upgrade %% apt-get -y autoremove
   #Install tools and dependencies
   - install_tools:
     - pmem_tools:
       - exec_in: apt-get install -y ipmctl ndctl daxctl numactl
     - other_tools: 
-      - exec_in: apt-get install -y htop tmux sshpass
+      - exec_in: apt-get install -y htop tmux 
   - install_dependencies:
     - tieredmemdb: 
       - exec_in: apt-get install -y pkg-config gcc libnuma-dev make psmisc dh-autoreconf
     - ycsb:
       - exec_in: apt-get install -y default-jre default-jdk
   # Setup PMEM environment
-  - prepare_additional_postinstall:
-    - create_pmem_setup_script:
-      - exec_local: |
-          rm -rf $${grid5000_environment_export_additional_postinstall_dir}
-          mkdir $${grid5000_environment_export_additional_postinstall_dir}
-          cat <<'EOF' > $${grid5000_environment_export_additional_postinstall_dir}/$${grid5000_environment_export_additional_postinstall_script}
-          #!/bin/bash
-          # Postinstall script, to have the node in the wanted PMEM configuration right away after the deployment (avoid additional reboots)
-          #
-          # Make stdout&err display in the console as well as in kadeploy logs.
-          exec 1> >(tee -a /dev/console)
-          exec 2> >(tee -a /dev/console 1>&2)
-          set -x -e
-          # install ipmctl in the deployment MiniOS
-          apt-get update
-          apt-get install -y ipmctl
-          ipmctl version
-          # Look for any defined AppDirect region: if any, this means the node was already configured in AppDirect mode (e.g. in a previous deployment)
-          if ipmctl show -region | tee /dev/console | grep -q AppDirect; then
-            echo "=> PMEM already in AppDirect Mode"
-          else
-            echo "=> Switch PMEM to AppDirect Mode..."
-            # Switch PMEM to AppDirect, after this the node needs to reboot for the mode switch to actually happen.
-            # For that purpose, the kadeploy3 command must be called with the --no-kexec option.
-            ipmctl create -force -goal PersistentMemoryType=AppDirect
-          fi
-          # Installing daxctl
-          apt-get install -y daxctl
-          # Run the daxctl migrate-device-model command and then copy the generated file to the deployed OS filesystem.
-          daxctl migrate-device-model
-          cp -v /etc/modprobe.d/daxctl.conf /mnt/dest/etc/modprobe.d/
-          EOF
-          chmod 755 $${grid5000_environment_export_additional_postinstall_dir}/$${grid5000_environment_export_additional_postinstall_script}
-
+  - setup_mode:
+    - app_direct_mode:
+      - exec_in: ipmctl create -force -goal PersistentMemoryType=AppDirect
+  - setup_namespace:
+    - migrate_device_model:
+      - exec_in: daxctl migrate-device-model
+    - create_namespace:
+      - exec_in: ndctl create-namespace --mode=devdax --map=mem && daxctl reconfigure-device dax1.0 --mode=system-ram
+  # - prepare_additional_postinstall:
+  #   - create_pmem_setup_script:
+  #     - exec_local: |
+  #         rm -rf $${grid5000_environment_export_additional_postinstall_dir}
+  #         mkdir $${grid5000_environment_export_additional_postinstall_dir}
+  #         cat <<'EOF' > $${grid5000_environment_export_additional_postinstall_dir}$${grid5000_environment_export_additional_postinstall_script}
+  #         #!/bin/bash
+  #         # Postinstall script, to have the node in the wanted PMEM configuration right away after the deployment (avoid additional reboots)
+  #         #
+  #         # Make stdout&err display in the console as well as in kadeploy logs.
+  #         exec 1> >(tee -a /dev/console)
+  #         exec 2> >(tee -a /dev/console 1>&2)
+  #         set -x -e
+  #         # install ipmctl in the deployment MiniOS
+  #         apt-get update
+  #         apt-get install -y ipmctl
+  #         ipmctl version
+  #         # Look for any defined AppDirect region: if any, this means the node was already configured in AppDirect mode (e.g. in a previous deployment)
+  #         if ipmctl show -region | tee /dev/console | grep -q AppDirect; then
+  #           echo "=> PMEM already in AppDirect Mode"
+  #         else
+  #           echo "=> Switch PMEM to AppDirect Mode..."
+  #           # Switch PMEM to AppDirect, after this the node needs to reboot for the mode switch to actually happen.
+  #           # For that purpose, the kadeploy3 command must be called with the --no-kexec option.
+  #           ipmctl create -force -goal PersistentMemoryType=AppDirect
+  #         fi
+  #         # Installing daxctl
+  #         apt-get install -y daxctl
+  #         # Run the daxctl migrate-device-model command and then copy the generated file to the deployed OS filesystem.
+  #         daxctl migrate-device-model
+  #         cp -v /etc/modprobe.d/daxctl.conf /mnt/dest/etc/modprobe.d/
+  #         EOF
+  #         chmod 755 $${grid5000_environment_export_additional_postinstall_dir}$${grid5000_environment_export_additional_postinstall_script}
 export:
   ### The export section takes in charge the export of your customized Grid'5000
   ## environment. No modification should be needed here.
