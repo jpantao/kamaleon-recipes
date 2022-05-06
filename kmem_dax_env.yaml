@@ -83,21 +83,21 @@ setup:
       - exec_in: apt-get install -y nfs-common autofs
     - install_ldap_service:
       - exec_in: apt-get install -y nslcd
-    # - setup_ldap:
-    #   - exec_in: mkdir -p /etc/ldap/certificates/
-    #   - local2in:
-    #     - /etc/ldap/certificates/ca2019.grid5000.fr.cert
-    #     - /etc/ldap/certificates/ca2019.grid5000.fr.cert
-    #   - local2in:
-    #     - /etc/ldap/ldap.conf 
-    #     - /etc/ldap/ldap.conf 
-    #   - local2in:
-    #     - /etc/nsswitch.conf
-    #     - /etc/nsswitch.conf
-    #   - local2in:
-    #     - /etc/nslcd.conf
-    #     - /etc/nslcd.conf
-  # Install tools and dependencies
+    - setup_ldap:
+      - exec_in: mkdir -p /etc/ldap/certificates/
+      - local2in:
+        - /etc/ldap/certificates/ca2019.grid5000.fr.cert
+        - /etc/ldap/certificates/ca2019.grid5000.fr.cert
+      - local2in:
+        - /etc/ldap/ldap.conf 
+        - /etc/ldap/ldap.conf 
+      - local2in:
+        - /etc/nsswitch.conf
+        - /etc/nsswitch.conf
+      - local2in:
+        - /etc/nslcd.conf
+        - /etc/nslcd.conf
+  #Install tools and dependencies
   - install_tools:
     - pmem_tools:
       - exec_in: apt-get install -y ipmctl ndctl daxctl numactl
