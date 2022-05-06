@@ -77,7 +77,7 @@ bootstrap:
 setup:
   - configure_system:
     - update: 
-      - exec_in: apt-get -y update && apt-get -y upgrade %% apt-get -y autoremove
+      - exec_in: apt-get -y update && apt-get -y upgrade && apt-get -y autoremove
   #Install tools and dependencies
   - install_tools:
     - pmem_tools:
