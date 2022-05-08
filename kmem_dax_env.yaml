@@ -120,8 +120,6 @@ setup:
           # Run the daxctl migrate-device-model command and then copy the generated file to the deployed OS filesystem.
           daxctl migrate-device-model
           cp -v /etc/modprobe.d/daxctl.conf /mnt/dest/etc/modprobe.d/
-          # Create and configure the namespace
-          ndctl create-namespace --mode=devdax --map=mem && daxctl reconfigure-device dax1.0 --mode=system-ram
           EOF
           chmod 755 $${grid5000_environment_export_additional_postinstall_dir}/$${grid5000_environment_export_additional_postinstall_script}
 export:
