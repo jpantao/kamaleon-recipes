@@ -115,8 +115,8 @@ setup:
             # For that purpose, the kadeploy3 command must be called with the --no-kexec option.
             ipmctl create -force -goal PersistentMemoryType=AppDirect
           fi
-          # Installing daxctl
-          apt-get install -y daxctl
+          # Installing daxctl and ndctl 
+          apt-get install -y daxctl ndctl
           # Run the daxctl migrate-device-model command and then copy the generated file to the deployed OS filesystem.
           daxctl migrate-device-model
           # Create namespace
