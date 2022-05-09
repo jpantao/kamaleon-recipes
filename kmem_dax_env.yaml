@@ -115,13 +115,10 @@ setup:
             # For that purpose, the kadeploy3 command must be called with the --no-kexec option.
             ipmctl create -force -goal PersistentMemoryType=AppDirect
           fi
-          # Installing daxctl and ndctl 
-          apt-get install -y daxctl ndctl
+          # Installing daxctl 
+          apt-get install -y daxctl
           # Run the daxctl migrate-device-model command and then copy the generated file to the deployed OS filesystem.
           daxctl migrate-device-model
-          # Create namespace
-          ndctl create-namespace --mode=devdax --map=mem
-          daxctl reconfigure-device dax1.0 --mode=system-ram
           cp -v /etc/modprobe.d/daxctl.conf /mnt/dest/etc/modprobe.d/
           EOF
           chmod 755 $${grid5000_environment_export_additional_postinstall_dir}/$${grid5000_environment_export_additional_postinstall_script}
